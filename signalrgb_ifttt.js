@@ -1,13 +1,24 @@
-export const name = "IFTTT RGB Controller";
-export const author = "Your Name";
-export const version = "1.0.0";
-export const description = "Fetches RGB values, maps them to commands, and triggers IFTTT webhooks.";
-export const devices = ["all"];
-export const updateRate = 1000; // Updates every second
+import tcp from "@SignalRGB/tcp";
 
-// IFTTT Webhook Configuration
-const webhookKey = "your_ifttt_key"; // Replace with your actual IFTTT Webhook Key
-const eventName = "smart_led_control"; // Replace with your IFTTT Event Name
+export function Name() {
+    return "IFTTT RGB Controller";
+}
+
+export function Version() {
+    return "1.0.0";
+}
+
+export function Type() {
+    return "network";
+}
+
+export function Publisher() {
+    return "Your Name";
+}
+
+export function Size() {
+    return [1, 1];
+}
 
 // RGB to Command Mapping
 const rgbToCommand = {
@@ -16,6 +27,10 @@ const rgbToCommand = {
     "#0000FF": "turn_blue",  // Blue
     "#FFFFFF": "turn_white"  // White
 };
+
+// IFTTT Webhook Configuration
+const webhookKey = "your_ifttt_key"; // Replace with your actual IFTTT Webhook Key
+const eventName = "smart_led_control"; // Replace with your IFTTT Event Name
 
 // Utility to convert RGB values to HEX
 function rgbToHex(r, g, b) {
@@ -35,48 +50,40 @@ async function sendToIFTTT(command) {
         });
 
         if (response.ok) {
-            console.log(`IFTTT Triggered: ${command}`);
+            device.log(`IFTTT Triggered: ${command}`);
         } else {
-            console.error(`Failed to trigger IFTTT: ${response.status}`);
+            device.log(`Failed to trigger IFTTT: ${response.status}`);
         }
     } catch (error) {
-        console.error(`Error Sending to IFTTT: ${error}`);
+        device.log(`Error Sending to IFTTT: ${error}`);
     }
 }
 
-// Initialize the plugin
-export function initialize() {
-    console.log(`${name} Initialized`);
+export function Initialize() {
+    device.setName("IFTTT RGB Controller");
+    device.log("Plugin Initialized");
 }
 
-// Update logic runs at regular intervals
-export function update() {
+export function Render() {
     try {
-        // Fetch the current RGB values from Signal RGB (Example API)
-        const device = SignalRgb.devices[0]; // Assuming the first device is active
-        if (!device) {
-            console.error("No device detected!");
-            return;
-        }
-
+        // Fetch the current RGB values from the device
         const { red, green, blue } = device.ledColor; // Assuming `ledColor` fetches current RGB values
         const currentHex = rgbToHex(red, green, blue);
 
-        console.log(`Current RGB Hex: ${currentHex}`);
+        device.log(`Current RGB Hex: ${currentHex}`);
 
         // Match RGB to a predefined command and send it to IFTTT
         const command = rgbToCommand[currentHex];
         if (command) {
             sendToIFTTT(command);
         } else {
-            console.log(`No matching command for RGB: ${currentHex}`);
+            device.log(`No matching command for RGB: ${currentHex}`);
         }
     } catch (error) {
-        console.error(`Error in update function: ${error.message}`);
+        device.log(`Error in Render function: ${error.message}`);
     }
 }
 
-// Terminate the plugin
-export function terminate() {
-    console.log(`${name} Terminated`);
+export function Shutdown() {
+    device.log("Plugin Terminated");
 }
